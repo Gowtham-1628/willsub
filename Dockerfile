@@ -55,8 +55,13 @@ RUN npm install --omit=dev
 # Copy compiled JavaScript from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Copy config file (values can be overridden by env vars)
+# Copy config files (env-specific + fallback)
 COPY config.json ./
+COPY config/ ./config/
+
+# Set default environment
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
 # Create logs directory
 RUN mkdir -p logs

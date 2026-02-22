@@ -112,18 +112,41 @@ class ConfigManager {
   }
 
   /**
-   * Load configuration from JSON file
-   * - Reads the config.json file from the root directory
-   * - Parses it and validates the structure
-   * - Throws error if file doesn't exist or is invalid JSON
+   * Resolve the config file path based on NODE_ENV
+   * Priority: explicit path > NODE_ENV-based > default config.json
    */
-  public loadConfig(configPath: string = './config.json'): Config {
+  private resolveConfigPath(configPath?: string): string {
+    if (configPath) return configPath;
+
+    const env = process.env.NODE_ENV || 'development';
+    const envConfigPath = `./config/config.${env}.json`;
+    const resolvedEnvPath = path.resolve(envConfigPath);
+
+    if (fs.existsSync(resolvedEnvPath)) {
+      console.log(`📋 Using ${env} config: ${envConfigPath}`);
+      return envConfigPath;
+    }
+
+    // Fallback to root config.json
+    return './config.json';
+  }
+
+  /**
+   * Load configuration from JSON file
+   * - Automatically selects config based on NODE_ENV (test, prod, development)
+   * - Reads the config file, parses it and validates the structure
+   * - Environment variables always override file values
+   */
+  public loadConfig(configPath?: string): Config {
     try {
       // Load environment variables from .env file
       dotenv.config();
 
+      // Resolve config path based on environment
+      const resolvedPath = this.resolveConfigPath(configPath);
+
       // Read the config file
-      const absolutePath = path.resolve(configPath);
+      const absolutePath = path.resolve(resolvedPath);
       const fileContent = fs.readFileSync(absolutePath, 'utf-8');
       
       // Parse JSON string to object and cast it to Config type

@@ -165,7 +165,7 @@ async function main() {
   try {
     // Step 0: Initialize logging
     const configManager = ConfigManager.getInstance();
-    configManager.loadConfig('./config.json');
+    configManager.loadConfig();
     const config = configManager.getConfig();
     
     const loggingConfig = config?.logging || {
@@ -658,7 +658,7 @@ async function main() {
  */
 function initializeScheduler() {
   const configManager = ConfigManager.getInstance();
-  configManager.loadConfig('./config.json');
+  configManager.loadConfig();
   const config = configManager.getConfig();
 
   if (!config) {

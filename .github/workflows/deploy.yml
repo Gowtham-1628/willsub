@@ -1,0 +1,192 @@
+# ============================================
+# Deploy to AWS Lightsail
+# Triggered manually or on push to main
+# Supports test and prod environments
+# ============================================
+name: Deploy
+
+on:
+  # Manual trigger with environment selection
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - prod
+
+  # Auto-deploy to prod on push to main (after CI passes)
+  push:
+    branches: [main]
+
+# Prevent concurrent deployments to the same environment
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || 'prod' }}
+  cancel-in-progress: false
+
+jobs:
+  # ----------------------------------------
+  # Step 1: Build & Test
+  # ----------------------------------------
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: set-env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ steps.set-env.outputs.environment }}
+          path: |
+            dist/
+            config/
+            config.json
+            package.json
+            package-lock.json
+            Dockerfile
+            docker-compose.yml
+            ecosystem.config.json
+          retention-days: 3
+
+  # ----------------------------------------
+  # Step 2: Deploy to Lightsail
+  # ----------------------------------------
+  deploy:
+    name: Deploy to ${{ needs.build.outputs.environment }}
+    runs-on: ubuntu-latest
+    needs: build
+    environment: ${{ needs.build.outputs.environment }}
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.build.outputs.environment }}
+          path: ./app
+
+      - name: Set environment variables
+        run: |
+          ENV="${{ needs.build.outputs.environment }}"
+          echo "DEPLOY_ENV=$ENV" >> $GITHUB_ENV
+          if [ "$ENV" = "prod" ]; then
+            echo "NODE_ENV=production" >> $GITHUB_ENV
+          else
+            echo "NODE_ENV=test" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to Lightsail via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USERNAME }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            ENV="${{ needs.build.outputs.environment }}"
+            APP_DIR="/home/${{ secrets.LIGHTSAIL_USERNAME }}/willsub"
+            
+            echo "🚀 Deploying WillSub ($ENV) to Lightsail..."
+            
+            # Ensure app directory exists
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+            
+            # Pull latest code
+            if [ -d ".git" ]; then
+              git pull origin main
+            else
+              git clone ${{ secrets.REPO_URL || 'https://github.com/${{ github.repository }}.git' }} .
+            fi
+            
+            # Create/update .env file from GitHub secrets
+            cat > .env << 'ENVEOF'
+            WILLSUB_USERNAME=${{ secrets.WILLSUB_USERNAME }}
+            WILLSUB_PASSWORD=${{ secrets.WILLSUB_PASSWORD }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+            TELEGRAM_ENABLED=true
+            NODE_ENV=${{ env.NODE_ENV }}
+            WILLSUB_SCHEDULING_ENABLED=true
+            WILLSUB_AUTO_APPLY_ENABLED=true
+            WILLSUB_DRY_RUN=${{ env.DEPLOY_ENV == 'test' && 'true' || 'false' }}
+            WILLSUB_LOG_LEVEL=${{ env.DEPLOY_ENV == 'test' && 'debug' || 'info' }}
+            ENVEOF
+            
+            # Clean up whitespace from heredoc
+            sed -i 's/^[[:space:]]*//' .env
+            
+            echo "📦 Building and deploying with Docker..."
+            
+            # Build and restart container
+            export NODE_ENV="${{ env.NODE_ENV }}"
+            docker compose down || true
+            docker compose up -d --build
+            
+            # Verify container is running
+            sleep 5
+            if docker compose ps | grep -q "running"; then
+              echo "✅ Deployment successful! Container is running."
+            else
+              echo "❌ Deployment failed! Container is not running."
+              docker compose logs --tail=50
+              exit 1
+            fi
+
+      - name: Notify Telegram on deploy
+        if: success()
+        run: |
+          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
+            curl -s -X POST \
+              "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.TELEGRAM_CHAT_ID }}\",
+                \"text\": \"🚀 <b>Deployment Complete</b>\n\n📍 Environment: <b>${{ needs.build.outputs.environment }}</b>\n🔀 Branch: <code>${{ github.ref_name }}</code>\n👤 By: ${{ github.actor }}\n🕐 $(date -u '+%Y-%m-%d %H:%M UTC')\",
+                \"parse_mode\": \"HTML\",
+                \"disable_notification\": false
+              }"
+          fi
+
+      - name: Notify Telegram on failure
+        if: failure()
+        run: |
+          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
+            curl -s -X POST \
+              "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"chat_id\": \"${{ secrets.TELEGRAM_CHAT_ID }}\",
+                \"text\": \"❌ <b>Deployment Failed</b>\n\n📍 Environment: <b>${{ needs.build.outputs.environment }}</b>\n🔀 Branch: <code>${{ github.ref_name }}</code>\n👤 By: ${{ github.actor }}\n\n⚠️ Check GitHub Actions for details.\",
+                \"parse_mode\": \"HTML\"
+              }"
+          fi

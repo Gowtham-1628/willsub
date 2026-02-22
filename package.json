@@ -11,10 +11,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "start:test": "NODE_ENV=test node dist/index.js",
+    "start:prod": "NODE_ENV=production node dist/index.js",
+    "dev:test": "NODE_ENV=test ts-node src/index.ts",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f"
+    "docker:logs": "docker compose logs -f",
+    "docker:test": "NODE_ENV=test docker compose up -d --build",
+    "docker:prod": "NODE_ENV=production docker compose up -d --build"
   },
   "keywords": [
     "automation",

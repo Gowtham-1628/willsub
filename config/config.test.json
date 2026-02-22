@@ -1,0 +1,80 @@
+{
+  "baseUrl": "https://willsubplus.com",
+  "loginEndpoint": "/login",
+  "jobsEndpoint": "/substitute/jobs/available/daily",
+  "scheduledJobsEndpoint": "/substitute/jobs/scheduled",
+  "jobApplicationEndpoint": "/substitute/jobs/apply",
+  "pollingIntervalSeconds": 60,
+  "credentials": {
+    "username": "",
+    "password": ""
+  },
+  "jobFiltering": {
+    "enabled": true,
+    "filterByPositionType": {
+      "enabled": true,
+      "preferred": ["Teacher"],
+      "exclude": ["Special", "Aide"]
+    },
+    "filterByBuilding": {
+      "enabled": true,
+      "preferred": [],
+      "exclude": [],
+      "preferredBuildingIds": [1674, 1709],
+      "excludeBuildingIds": []
+    },
+    "filterByScheduleType": {
+      "enabled": true,
+      "preferred": ["FULL_DAY"]
+    },
+    "filterByDuration": {
+      "enabled": false,
+      "minDays": 1,
+      "maxDays": 365,
+      "onlyMultipleDays": false
+    },
+    "filterByJobType": {
+      "enabled": true,
+      "includeLongTerm": false,
+      "includeShortTerm": true
+    }
+  },
+  "autoApply": {
+    "enabled": true,
+    "autoApplyOnMatches": true,
+    "dryRunMode": true
+  },
+  "scheduling": {
+    "enabled": true,
+    "pollingIntervalSeconds": 60
+  },
+  "display": {
+    "showScheduledJobsTable": true,
+    "showAvailableJobsTable": true,
+    "showLongTermJobsTable": true,
+    "showFilteredJobsDetails": true
+  },
+  "authentication": {
+    "enableAutoRefreshOn401": true,
+    "refreshThresholdPercent": 80
+  },
+  "logging": {
+    "enabled": true,
+    "logToFile": true,
+    "logDirectory": "./logs",
+    "logLevel": "debug",
+    "includeTimestamp": true,
+    "maxLogFiles": 50
+  },
+  "telegram": {
+    "enabled": false,
+    "botToken": "",
+    "chatId": "",
+    "silentHoursStart": 23,
+    "silentHoursEnd": 6,
+    "notifyOnApply": true,
+    "notifyOnNewJobs": true,
+    "notifyOnErrors": true,
+    "notifyDailySummary": true
+  }
+}
