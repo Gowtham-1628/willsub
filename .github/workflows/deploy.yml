@@ -1,12 +1,12 @@
 # ============================================
 # Deploy to AWS Lightsail
-# Triggered manually or on push to main
+# Triggered manually only (workflow_dispatch)
 # Supports test and prod environments
 # ============================================
 name: Deploy
 
 on:
-  # Manual trigger with environment selection
+  # Manual trigger only — go to Actions → Deploy → Run workflow
   workflow_dispatch:
     inputs:
       environment:
@@ -17,10 +17,6 @@ on:
         options:
           - test
           - prod
-
-  # Auto-deploy to prod on push to main (after CI passes)
-  push:
-    branches: [main]
 
 # Prevent concurrent deployments to the same environment
 concurrency:
