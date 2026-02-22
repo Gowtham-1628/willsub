@@ -20,7 +20,7 @@
       "enabled": true,
       "preferred": [],
       "exclude": [],
-      "preferredBuildingIds": [1674, 1709],
+      "preferredBuildingIds": [1709],
       "excludeBuildingIds": []
     },
     "filterByScheduleType": {
@@ -46,7 +46,7 @@
   },
   "scheduling": {
     "enabled": true,
-    "pollingIntervalSeconds": 30
+    "pollingIntervalSeconds": 15
   },
   "display": {
     "showScheduledJobsTable": false,

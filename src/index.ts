@@ -185,7 +185,6 @@ async function main() {
     telegram = new TelegramNotifier(telegramConfig);
     if (telegram.isEnabled()) {
       console.log('📱 Telegram notifications enabled');
-      await telegram.notifyStartup();
     } else {
       console.log('📱 Telegram notifications disabled (set TELEGRAM_BOT_TOKEN & TELEGRAM_CHAT_ID to enable)');
     }
@@ -352,76 +351,87 @@ async function main() {
     }
 
     // VERIFICATION: Test Phase 2b with long-term jobs
-    console.log('='.repeat(50));
-    console.log('🔍 VERIFICATION: Phase 2b with Long-term Jobs (with Filtering)\n');
+    // Check if includeLongTerm is enabled before making the API call
+    const jobFilteringForLongTerm = config?.jobFiltering?.filterByJobType;
+    const shouldLoadLongTerm = jobFilteringForLongTerm?.enabled ? (jobFilteringForLongTerm.includeLongTerm !== false) : true;
 
-    let longTermResult = await jobsModule.fetchAvailableLongTermJobs(currentBearerToken, userId);
+    let longTermResult: any = { success: false, jobs: [], totalCount: 0, message: 'Long-term jobs skipped (includeLongTerm is false)' };
 
-    // Handle 401 errors by refreshing auth and retrying
-    if (!longTermResult.success && longTermResult.statusCode === 401) {
-      const retryResult = await handleAuthError(authModule, async (newToken) => 
-        jobsModule.fetchAvailableLongTermJobs(newToken, userId)
-      );
-      if (retryResult) {
-        longTermResult = retryResult;
+    if (shouldLoadLongTerm) {
+      console.log('='.repeat(50));
+      console.log('🔍 VERIFICATION: Phase 2b with Long-term Jobs (with Filtering)\n');
+
+      longTermResult = await jobsModule.fetchAvailableLongTermJobs(currentBearerToken, userId);
+
+      // Handle 401 errors by refreshing auth and retrying
+      if (!longTermResult.success && longTermResult.statusCode === 401) {
+        const retryResult = await handleAuthError(authModule, async (newToken) => 
+          jobsModule.fetchAvailableLongTermJobs(newToken, userId)
+        );
+        if (retryResult) {
+          longTermResult = retryResult;
+        }
       }
-    }
 
-    if (longTermResult.success) {
-      console.log(`✓ Fetched ${longTermResult.totalCount} long-term available jobs`);
-      
-      if (longTermResult.jobs.length > 0) {
-        // Load filter preferences from config
-        const { manager: verificationPrefs, preferences: verificationPreferences } = loadFilterPreferences(configManager);
-
-        const verificationFilter = verificationPrefs.filterJobs(longTermResult.jobs);
-        const filteredLongTerm = verificationFilter.passed;
-        const excludedLongTerm = verificationFilter.filtered;
-
-        console.log('\n📅 Long-term Available Jobs:\n');
+      if (longTermResult.success) {
+        console.log(`✓ Fetched ${longTermResult.totalCount} long-term available jobs`);
         
-        if (Object.keys(verificationPreferences).length > 0) {
-          console.log('📍 Active Filters:');
-          console.log(verificationPrefs.getSummary().split('\n').map((line: string) => '   ' + line).join('\n'));
-          console.log('');
-        }
+        if (longTermResult.jobs.length > 0) {
+          // Load filter preferences from config
+          const { manager: verificationPrefs, preferences: verificationPreferences } = loadFilterPreferences(configManager);
 
-        if (filteredLongTerm.length > 0) {
-          console.log(`✅ Filtered Results: ${filteredLongTerm.length}/${longTermResult.jobs.length} long-term job(s) match your preferences`);
-          if (config?.display?.showLongTermJobsTable !== false) {
+          const verificationFilter = verificationPrefs.filterJobs(longTermResult.jobs);
+          const filteredLongTerm = verificationFilter.passed;
+          const excludedLongTerm = verificationFilter.filtered;
+
+          console.log('\n📅 Long-term Available Jobs:\n');
+          
+          if (Object.keys(verificationPreferences).length > 0) {
+            console.log('📍 Active Filters:');
+            console.log(verificationPrefs.getSummary().split('\n').map((line: string) => '   ' + line).join('\n'));
             console.log('');
-            displayJobsTable(filteredLongTerm);
-          } else {
-            console.log('   (Table display disabled in config)\n');
           }
-        } else {
-          console.log(`✅ Filtered Results: No long-term jobs match your preferences`);
-          if (config?.display?.showFilteredJobsDetails !== false && excludedLongTerm.length > 0) {
-            console.log(`   ${excludedLongTerm.length} jobs were excluded:\n`);
-            excludedLongTerm.slice(0, 5).forEach((item, idx) => {
-              const building = item.job.schedules?.[0]?.building?.title || item.job.schedules?.[0]?.building?.name || 'N/A';
-              const ltTitle = item.job.positionTitle || item.job.position || item.job.positionType?.title || item.job.title || 'Untitled';
-              console.log(`   ${idx + 1}. ${ltTitle} @ ${building}`);
-              console.log(`      Reason: ${item.reason}\n`);
-            });
-            if (excludedLongTerm.length > 5) {
-              console.log(`   ... and ${excludedLongTerm.length - 5} more excluded jobs\n`);
+
+          if (filteredLongTerm.length > 0) {
+            console.log(`✅ Filtered Results: ${filteredLongTerm.length}/${longTermResult.jobs.length} long-term job(s) match your preferences`);
+            if (config?.display?.showLongTermJobsTable !== false) {
+              console.log('');
+              displayJobsTable(filteredLongTerm);
+            } else {
+              console.log('   (Table display disabled in config)\n');
             }
-          } else if (!config?.display?.showFilteredJobsDetails) {
-            console.log('   (Filtered jobs details disabled in config)\n');
+          } else {
+            console.log(`✅ Filtered Results: No long-term jobs match your preferences`);
+            if (config?.display?.showFilteredJobsDetails !== false && excludedLongTerm.length > 0) {
+              console.log(`   ${excludedLongTerm.length} jobs were excluded:\n`);
+              excludedLongTerm.slice(0, 5).forEach((item, idx) => {
+                const building = item.job.schedules?.[0]?.building?.title || item.job.schedules?.[0]?.building?.name || 'N/A';
+                const ltTitle = item.job.positionTitle || item.job.position || item.job.positionType?.title || item.job.title || 'Untitled';
+                console.log(`   ${idx + 1}. ${ltTitle} @ ${building}`);
+                console.log(`      Reason: ${item.reason}\n`);
+              });
+              if (excludedLongTerm.length > 5) {
+                console.log(`   ... and ${excludedLongTerm.length - 5} more excluded jobs\n`);
+              }
+            } else if (!config?.display?.showFilteredJobsDetails) {
+              console.log('   (Filtered jobs details disabled in config)\n');
+            }
           }
+
+          console.log('✅ Phase 2b Verification: PASSED');
+          console.log('   Response parsing works correctly with filtered results\n');
+        } else {
+          console.log('   (No long-term jobs found)');
+          console.log('✅ Phase 2b Verification: PASSED');
+          console.log('   Response parsing works correctly with empty response\n');
+
         }
-
-        console.log('✅ Phase 2b Verification: PASSED');
-        console.log('   Response parsing works correctly with filtered results\n');
       } else {
-        console.log('   (No long-term jobs found)');
-        console.log('✅ Phase 2b Verification: PASSED');
-        console.log('   Response parsing works correctly with empty response\n');
-
+        console.log(`✗ Failed to fetch long-term jobs: ${longTermResult.message}\n`);
       }
     } else {
-      console.log(`✗ Failed to fetch long-term jobs: ${longTermResult.message}\n`);
+      console.log('='.repeat(50));
+      console.log('⏭️  Skipping long-term jobs (includeLongTerm is false in config)\n');
     }
 
     // ============================================
@@ -664,6 +674,15 @@ function initializeScheduler() {
   if (!config) {
     console.error('❌ Failed to load configuration');
     process.exit(1);
+  }
+
+  // Send one-time startup notification via Telegram
+  const telegramConfig = config?.telegram || { enabled: false, botToken: '', chatId: '' };
+  const startupTelegram = new TelegramNotifier(telegramConfig);
+  if (startupTelegram.isEnabled()) {
+    startupTelegram.notifyStartup().catch((err: Error) => {
+      console.error('⚠️ Failed to send startup notification:', err.message);
+    });
   }
 
   const schedulingConfig = config?.scheduling || { enabled: false };
