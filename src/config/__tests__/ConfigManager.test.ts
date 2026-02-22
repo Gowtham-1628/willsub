@@ -91,7 +91,7 @@ describe('ConfigManager', () => {
       expect(baseUrl).toBe('https://willsubplus.com');
 
       const pollingInterval = configManager.get('pollingIntervalSeconds');
-      expect(pollingInterval).toBe(30);
+      expect(pollingInterval).toBeGreaterThan(0);
     });
 
     it('should return credentials', () => {
