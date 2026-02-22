@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+
+# Debug and temporary files
+debug_screenshot_*.png
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Authentication cache
+auth_cache.json
+
+# Config with credentials
+config.json
+
+# Log files directory
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Test cache
+test_auth_cache.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
