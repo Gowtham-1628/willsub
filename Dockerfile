@@ -55,8 +55,7 @@ RUN npm install --omit=dev
 # Copy compiled JavaScript from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Copy config files (env-specific + fallback)
-COPY config.json ./
+# Copy environment-specific config files (credentials come from env vars)
 COPY config/ ./config/
 
 # Set default environment
