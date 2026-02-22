@@ -1,8 +1,8 @@
 #!/bin/bash
 # ==========================================================
-# AWS Lightsail Deployment Script for WillSub Automation
+# AWS EC2 Deployment Script for WillSub Automation
 # ==========================================================
-# Run this script ON the Lightsail instance after SSH-ing in.
+# Run this script ON the EC2 instance after SSH-ing in.
 #
 # Usage:
 #   Option A (Docker - recommended):
@@ -18,7 +18,7 @@ DEPLOY_MODE="${1:-docker}"
 APP_DIR="/home/ubuntu/willsub"
 REPO_URL="${GITHUB_REPO_URL:-https://github.com/YOUR_USERNAME/willsub.git}"
 
-echo "🚀 WillSub Automation - Lightsail Deployment"
+echo "🚀 WillSub Automation - EC2 Deployment"
 echo "   Mode: $DEPLOY_MODE"
 echo "=============================================="
 
@@ -176,5 +176,5 @@ fi
 
 echo ""
 echo "=============================================="
-echo "🎉 WillSub Automation deployed on Lightsail!"
+echo "🎉 WillSub Automation deployed on EC2!"
 echo "=============================================="

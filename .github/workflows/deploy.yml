@@ -1,5 +1,5 @@
 # ============================================
-# Deploy to AWS Lightsail
+# Deploy to AWS EC2 (Free Tier)
 # Triggered manually only (workflow_dispatch)
 # Supports test and prod environments
 # ============================================
@@ -74,7 +74,7 @@ jobs:
           retention-days: 3
 
   # ----------------------------------------
-  # Step 2: Deploy to Lightsail
+  # Step 2: Deploy to EC2
   # ----------------------------------------
   deploy:
     name: Deploy to ${{ needs.build.outputs.environment }}
@@ -99,19 +99,19 @@ jobs:
             echo "NODE_ENV=test" >> $GITHUB_ENV
           fi
 
-      - name: Deploy to Lightsail via SSH
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USERNAME }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script_stop: true
           script: |
             set -e
             ENV="${{ needs.build.outputs.environment }}"
-            APP_DIR="/home/${{ secrets.LIGHTSAIL_USERNAME }}/willsub"
+            APP_DIR="/home/${{ secrets.EC2_USERNAME }}/willsub"
             
-            echo "🚀 Deploying WillSub ($ENV) to Lightsail..."
+            echo "🚀 Deploying WillSub ($ENV) to EC2..."
             
             # Ensure app directory exists
             mkdir -p "$APP_DIR"
