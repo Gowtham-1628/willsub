@@ -98,10 +98,8 @@ jobs:
             libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 \
             xdg-utils --no-install-recommends
 
-      - name: Create config with credentials
-        run: |
-          jq '.credentials.username = "${{ secrets.WILLSUB_USERNAME }}" | .credentials.password = "${{ secrets.WILLSUB_PASSWORD }}"' \
-            config/config.test.json > config.json
+      - name: Create config for tests
+        run: cp config/config.test.json config.json
 
       - name: Run login flow tests (PuppeteerAuthModule)
         run: npm test -- --forceExit --detectOpenHandles --testPathPattern='PuppeteerAuthModule'
