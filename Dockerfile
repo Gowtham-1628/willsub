@@ -62,11 +62,9 @@ COPY config/ ./config/
 ARG NODE_ENV=prod
 ENV NODE_ENV=${NODE_ENV}
 
-# Create logs directory
-RUN mkdir -p logs
-
 # Run as non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser \
+    && mkdir -p logs \
     && chown -R appuser:appuser /app
 USER appuser
 
