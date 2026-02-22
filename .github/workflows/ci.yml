@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create config.json for tests
+        run: cp config/config.test.json config.json
+
       - name: Install Chromium dependencies
         run: |
           sudo apt-get update
