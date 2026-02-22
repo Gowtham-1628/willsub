@@ -21,7 +21,11 @@ services:
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
     volumes:
-      - ./logs:/app/logs
-      - ./auth_cache.json:/app/auth_cache.json
+      - willsub-logs:/app/logs
+      - willsub-cache:/app/cache
     mem_limit: 1g
     cpus: 1.0
+
+volumes:
+  willsub-logs:
+  willsub-cache:
