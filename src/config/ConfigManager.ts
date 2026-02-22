@@ -116,13 +116,8 @@ class ConfigManager {
       // Parse JSON string to object and cast it to Config type
       this.config = JSON.parse(fileContent) as Config;
 
-      // Override credentials from environment variables if available
-      if (process.env.WILLSUB_USERNAME || process.env.WILLSUB_PASSWORD) {
-        this.config.credentials = {
-          username: process.env.WILLSUB_USERNAME || this.config.credentials.username,
-          password: process.env.WILLSUB_PASSWORD || this.config.credentials.password
-        };
-      }
+      // Override settings from environment variables if available
+      this.applyEnvironmentOverrides();
       
       console.log('✓ Configuration loaded successfully');
       return this.config;
@@ -131,6 +126,66 @@ class ConfigManager {
         throw new Error(`Invalid JSON in config file: ${error.message}`);
       }
       throw new Error(`Failed to load config file: ${error}`);
+    }
+  }
+
+  /**
+   * Apply environment variable overrides to the loaded config
+   * This allows cloud deployments to configure the app without modifying config.json
+   */
+  private applyEnvironmentOverrides(): void {
+    if (!this.config) return;
+
+    // Credentials (most important for cloud deployments)
+    if (process.env.WILLSUB_USERNAME || process.env.WILLSUB_PASSWORD) {
+      this.config.credentials = {
+        username: process.env.WILLSUB_USERNAME || this.config.credentials.username,
+        password: process.env.WILLSUB_PASSWORD || this.config.credentials.password
+      };
+    }
+
+    // Base URL
+    if (process.env.WILLSUB_BASE_URL) {
+      this.config.baseUrl = process.env.WILLSUB_BASE_URL;
+    }
+
+    // Polling interval
+    if (process.env.WILLSUB_POLLING_INTERVAL) {
+      this.config.pollingIntervalSeconds = parseInt(process.env.WILLSUB_POLLING_INTERVAL, 10);
+    }
+
+    // Auto-apply settings
+    if (process.env.WILLSUB_AUTO_APPLY_ENABLED !== undefined) {
+      if (!this.config.autoApply) {
+        this.config.autoApply = { enabled: false, autoApplyOnMatches: false, dryRunMode: true };
+      }
+      this.config.autoApply.enabled = process.env.WILLSUB_AUTO_APPLY_ENABLED === 'true';
+    }
+
+    if (process.env.WILLSUB_DRY_RUN !== undefined) {
+      if (!this.config.autoApply) {
+        this.config.autoApply = { enabled: false, autoApplyOnMatches: false, dryRunMode: true };
+      }
+      this.config.autoApply.dryRunMode = process.env.WILLSUB_DRY_RUN === 'true';
+    }
+
+    // Scheduling
+    if (process.env.WILLSUB_SCHEDULING_ENABLED !== undefined) {
+      if (!this.config.scheduling) {
+        this.config.scheduling = { enabled: false, pollingIntervalSeconds: 30 };
+      }
+      this.config.scheduling.enabled = process.env.WILLSUB_SCHEDULING_ENABLED === 'true';
+    }
+
+    // Log level
+    if (process.env.WILLSUB_LOG_LEVEL) {
+      if (!this.config.logging) {
+        this.config.logging = {
+          enabled: true, logToFile: true, logDirectory: './logs',
+          logLevel: 'info', includeTimestamp: true, maxLogFiles: 300
+        };
+      }
+      this.config.logging.logLevel = process.env.WILLSUB_LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error';
     }
   }
 

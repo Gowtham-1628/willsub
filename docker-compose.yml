@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  willsub:
+    build: .
+    container_name: willsub-automation
+    restart: unless-stopped
+    environment:
+      - WILLSUB_USERNAME=${WILLSUB_USERNAME}
+      - WILLSUB_PASSWORD=${WILLSUB_PASSWORD}
+      - WILLSUB_SCHEDULING_ENABLED=${WILLSUB_SCHEDULING_ENABLED:-true}
+      - WILLSUB_POLLING_INTERVAL=${WILLSUB_POLLING_INTERVAL:-30}
+      - WILLSUB_AUTO_APPLY_ENABLED=${WILLSUB_AUTO_APPLY_ENABLED:-true}
+      - WILLSUB_DRY_RUN=${WILLSUB_DRY_RUN:-false}
+      - WILLSUB_LOG_LEVEL=${WILLSUB_LOG_LEVEL:-info}
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    volumes:
+      - ./logs:/app/logs
+      - ./auth_cache.json:/app/auth_cache.json
+    mem_limit: 1g
+    cpus: 1.0
