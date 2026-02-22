@@ -59,7 +59,7 @@ COPY --from=builder /app/dist ./dist
 COPY config/ ./config/
 
 # Set default environment
-ARG NODE_ENV=production
+ARG NODE_ENV=prod
 ENV NODE_ENV=${NODE_ENV}
 
 # Create logs directory

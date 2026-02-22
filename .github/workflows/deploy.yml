@@ -94,7 +94,7 @@ jobs:
           ENV="${{ needs.build.outputs.environment }}"
           echo "DEPLOY_ENV=$ENV" >> $GITHUB_ENV
           if [ "$ENV" = "prod" ]; then
-            echo "NODE_ENV=production" >> $GITHUB_ENV
+            echo "NODE_ENV=prod" >> $GITHUB_ENV
           else
             echo "NODE_ENV=test" >> $GITHUB_ENV
           fi

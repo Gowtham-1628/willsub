@@ -3,11 +3,11 @@ services:
     build:
       context: .
       args:
-        NODE_ENV: ${NODE_ENV:-production}
+        NODE_ENV: ${NODE_ENV:-prod}
     container_name: willsub-${NODE_ENV:-prod}
     restart: unless-stopped
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
+      - NODE_ENV=${NODE_ENV:-prod}
       - WILLSUB_USERNAME=${WILLSUB_USERNAME}
       - WILLSUB_PASSWORD=${WILLSUB_PASSWORD}
       - WILLSUB_SCHEDULING_ENABLED=${WILLSUB_SCHEDULING_ENABLED:-true}
