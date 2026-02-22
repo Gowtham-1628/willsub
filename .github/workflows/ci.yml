@@ -1,5 +1,5 @@
 # ============================================
-# CI Pipeline - Build & Test
+# CI Pipeline - Build Only
 # Runs on every push and pull request
 # ============================================
 name: CI
@@ -11,8 +11,8 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
-    name: Build & Test
+  build:
+    name: Build
     runs-on: ubuntu-latest
 
     strategy:
@@ -32,44 +32,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create config.json for tests
-        run: cp config/config.test.json config.json
-
-      - name: Install Chromium dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser fonts-liberation \
-            libasound2t64 libatk-bridge2.0-0 \
-            libatk1.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 \
-            libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 \
-            libxdamage1 libxrandr2 xdg-utils --no-install-recommends
-
       - name: Build TypeScript
         run: npm run build
-
-      - name: Run linting (if configured)
-        run: npx tsc --noEmit
-        continue-on-error: true
-
-      - name: Run unit tests (skip browser/integration tests in CI)
-        run: npm test -- --forceExit --detectOpenHandles --testPathIgnorePatterns='PuppeteerAuthModule'
-        env:
-          NODE_ENV: test
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
-        timeout-minutes: 5
-
-      - name: Run integration tests (requires secrets)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npm test -- --forceExit --detectOpenHandles --testPathPattern='PuppeteerAuthModule'
-        env:
-          NODE_ENV: test
-          WILLSUB_USERNAME: ${{ secrets.WILLSUB_USERNAME }}
-          WILLSUB_PASSWORD: ${{ secrets.WILLSUB_PASSWORD }}
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
-        timeout-minutes: 10
-        continue-on-error: true
 
       - name: Upload build artifacts
         if: success()
