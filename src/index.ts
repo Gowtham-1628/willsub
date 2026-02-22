@@ -6,6 +6,7 @@ import JobComparisonModule from './jobs/JobComparisonModule';
 import JobApplicationModule from './jobs/JobApplicationModule';
 import JobScheduler from './scheduler/JobScheduler';
 import FileLogger from './logger/FileLogger';
+import TelegramNotifier from './notifications/TelegramNotifier';
 import axios from 'axios';
 
 /**
@@ -159,6 +160,7 @@ async function main() {
 
   // Initialize logger
   let logger: FileLogger | null = null;
+  let telegram: TelegramNotifier | null = null;
   
   try {
     // Step 0: Initialize logging
@@ -178,6 +180,16 @@ async function main() {
     logger = new FileLogger(loggingConfig);
     logger.initialize();
 
+    // Initialize Telegram notifications
+    const telegramConfig = config?.telegram || { enabled: false, botToken: '', chatId: '' };
+    telegram = new TelegramNotifier(telegramConfig);
+    if (telegram.isEnabled()) {
+      console.log('📱 Telegram notifications enabled');
+      await telegram.notifyStartup();
+    } else {
+      console.log('📱 Telegram notifications disabled (set TELEGRAM_BOT_TOKEN & TELEGRAM_CHAT_ID to enable)');
+    }
+
     // Step 1: Initialize and load configuration
     console.log('📋 Step 1: Loading Configuration');
     console.log(`   Base URL: ${config?.baseUrl}`);
@@ -194,6 +206,9 @@ async function main() {
     
     if (!loginResult.success) {
       console.log('   ✗ Login failed. Check credentials and try again.\n');
+      if (telegram?.isEnabled()) {
+        await telegram.notifyAuthError('Login failed. Check credentials and try again.');
+      }
       process.exit(1);
     }
 
@@ -545,6 +560,11 @@ async function main() {
 
     console.log('✨ Phase 3 Complete! Smart matching analysis finished\n');
 
+    // Notify about new matching jobs via Telegram
+    if (telegram?.isEnabled() && comparisonResult.newOpportunities.length > 0) {
+      await telegram.notifyNewJobs(comparisonResult.newOpportunities);
+    }
+
     // ===============================================================================
     // Phase 4: Auto-Apply to Matched Opportunities
     // ===============================================================================
@@ -582,6 +602,17 @@ async function main() {
 
           console.log('\n' + applicationModule.getSummary(applicationResult));
           console.log(`   Note: ${autoApplyConfig.dryRunMode ? 'DRY-RUN' : 'LIVE'} mode\n`);
+
+          // Send Telegram notification for applications
+          if (telegram?.isEnabled()) {
+            const appNotifications = applicationResult.results.map(r => ({
+              jobTitle: r.jobTitle,
+              building: 'N/A',
+              date: r.timestamp?.toLocaleDateString() || 'N/A',
+              status: r.status
+            }));
+            await telegram.notifyJobApplied(appNotifications, autoApplyConfig.dryRunMode);
+          }
         } else {
           // Manual review mode - show what would be applied
           console.log('📋 Reviewing opportunities for manual approval:\n');
@@ -609,6 +640,10 @@ async function main() {
 
   } catch (error) {
     console.error('❌ Fatal Error:', error);
+    if (telegram?.isEnabled()) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      await telegram.notifyError('Fatal Error', errMsg);
+    }
     process.exit(1);
   } finally {
     // Close logger and save logs to file

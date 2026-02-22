@@ -67,6 +67,18 @@ interface LoggingConfig {
   maxLogFiles: number;
 }
 
+interface TelegramConfig {
+  enabled: boolean;
+  botToken: string;
+  chatId: string;
+  silentHoursStart?: number;
+  silentHoursEnd?: number;
+  notifyOnApply?: boolean;
+  notifyOnNewJobs?: boolean;
+  notifyOnErrors?: boolean;
+  notifyDailySummary?: boolean;
+}
+
 interface Config {
   baseUrl: string;
   loginEndpoint: string;
@@ -81,6 +93,7 @@ interface Config {
   display?: DisplayConfig;
   authentication?: AuthenticationConfig;
   logging?: LoggingConfig;
+  telegram?: TelegramConfig;
 }
 
 class ConfigManager {
@@ -177,6 +190,26 @@ class ConfigManager {
       this.config.scheduling.enabled = process.env.WILLSUB_SCHEDULING_ENABLED === 'true';
     }
 
+    // Telegram notifications
+    if (process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_CHAT_ID) {
+      if (!this.config.telegram) {
+        this.config.telegram = { enabled: false, botToken: '', chatId: '' };
+      }
+      if (process.env.TELEGRAM_BOT_TOKEN) {
+        this.config.telegram.botToken = process.env.TELEGRAM_BOT_TOKEN;
+      }
+      if (process.env.TELEGRAM_CHAT_ID) {
+        this.config.telegram.chatId = process.env.TELEGRAM_CHAT_ID;
+      }
+      if (process.env.TELEGRAM_ENABLED !== undefined) {
+        this.config.telegram.enabled = process.env.TELEGRAM_ENABLED === 'true';
+      }
+      // Auto-enable if both token and chat ID are provided
+      if (this.config.telegram.botToken && this.config.telegram.chatId) {
+        this.config.telegram.enabled = this.config.telegram.enabled !== false;
+      }
+    }
+
     // Log level
     if (process.env.WILLSUB_LOG_LEVEL) {
       if (!this.config.logging) {
@@ -226,5 +259,6 @@ export type {
   SchedulingConfig,
   DisplayConfig,
   AuthenticationConfig,
-  LoggingConfig
+  LoggingConfig,
+  TelegramConfig
 };
