@@ -1,4 +1,4 @@
-cle{
+{
   "baseUrl": "https://willsubplus.com",
   "loginEndpoint": "/login",
   "jobsEndpoint": "/substitute/jobs/available/daily",
