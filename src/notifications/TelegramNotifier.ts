@@ -200,6 +200,17 @@ class TelegramNotifier {
   }
 
   /**
+   * Notify when auth token is refreshed (new JWT obtained)
+   */
+  public async notifyAuthRefresh(): Promise<void> {
+    const text = `🔑 <b>Auth Token Refreshed</b>\n\n`
+      + `A new JWT was obtained via re-authentication.\n`
+      + `⏰ ${new Date().toLocaleString()}`;
+
+    await this.sendMessage({ text });
+  }
+
+  /**
    * Notify on general errors
    */
   public async notifyError(context: string, errorMessage: string): Promise<void> {

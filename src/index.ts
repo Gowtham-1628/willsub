@@ -61,13 +61,17 @@ function displayJobsTable(jobs: any[]) {
  */
 async function handleAuthError(
   authModule: PuppeteerAuthModule,
-  retryFn: (token: string) => Promise<any>
+  retryFn: (token: string) => Promise<any>,
+  telegram?: TelegramNotifier | null
 ): Promise<any> {
   console.log('\n🔄 Detected 401 - Attempting to refresh authentication...');
   const refreshResult = await authModule.reAuthenticate();
   
   if (refreshResult.success && refreshResult.bearerToken) {
     console.log('✓ Re-authentication successful - Retrying request...\n');
+    if (telegram?.isEnabled()) {
+      await telegram.notifyAuthRefresh();
+    }
     return retryFn(refreshResult.bearerToken);
   } else {
     console.log('✗ Re-authentication failed\n');
@@ -255,7 +259,7 @@ async function main() {
     if (!scheduledResult.success && scheduledResult.statusCode === 401) {
       const retryResult = await handleAuthError(authModule, async (newToken) => 
         jobsModule.fetchScheduledJobs(newToken, userId)
-      );
+      , telegram);
       if (retryResult) {
         scheduledResult = retryResult;
       }
@@ -290,7 +294,7 @@ async function main() {
     if (!availableResult.success && availableResult.statusCode === 401) {
       const retryResult = await handleAuthError(authModule, async (newToken) => 
         jobsModule.fetchAvailableJobs(newToken, userId)
-      );
+      , telegram);
       if (retryResult) {
         availableResult = retryResult;
       }
@@ -367,7 +371,7 @@ async function main() {
       if (!longTermResult.success && longTermResult.statusCode === 401) {
         const retryResult = await handleAuthError(authModule, async (newToken) => 
           jobsModule.fetchAvailableLongTermJobs(newToken, userId)
-        );
+        , telegram);
         if (retryResult) {
           longTermResult = retryResult;
         }
