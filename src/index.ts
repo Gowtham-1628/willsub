@@ -307,10 +307,28 @@ async function main() {
       const { manager: preferencesManager, preferences } = loadFilterPreferences(configManager);
 
       if (availableResult.jobs.length > 0) {
+        // Log all jobs BEFORE filtering
+        console.log(`\n📋 Before Filter: ${availableResult.jobs.length} available job(s):`);
+        availableResult.jobs.forEach((job: any, idx: number) => {
+          const title = job.positionTitle || job.position || job.positionType?.title || job.title || 'Untitled';
+          const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
+          const date = job.startDate || job.date || 'N/A';
+          console.log(`   ${idx + 1}. ${title} @ ${building} (${date})`);
+        });
+
         // Apply filtering if preferences are configured
         const filterResult = preferencesManager.filterJobs(availableResult.jobs);
         const filteredJobs = filterResult.passed;
         const excludedJobs = filterResult.filtered;
+
+        // Log jobs AFTER filtering
+        console.log(`\n✅ After Filter: ${filteredJobs.length} job(s) passed:`);
+        filteredJobs.forEach((job: any, idx: number) => {
+          const title = job.positionTitle || job.position || job.positionType?.title || job.title || 'Untitled';
+          const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
+          const date = job.startDate || job.date || 'N/A';
+          console.log(`   ${idx + 1}. ${title} @ ${building} (${date})`);
+        });
 
         console.log('\n🆕 Available Jobs (Today & Upcoming):');
         
@@ -459,10 +477,29 @@ async function main() {
       ...(availableResult.success ? availableResult.jobs : []),
       ...(longTermResult.success ? longTermResult.jobs : [])
     ];
+
+    // Log all combined jobs BEFORE filtering
+    console.log(`📋 Before Filter: ${allAvailableJobs.length} total available job(s):`);
+    allAvailableJobs.forEach((job: any, idx: number) => {
+      const title = job.positionTitle || job.position || job.positionType?.title || job.title || 'Untitled';
+      const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
+      const date = job.startDate || job.date || 'N/A';
+      console.log(`   ${idx + 1}. ${title} @ ${building} (${date})`);
+    });
+
     const filteredAvailableResult = phase3Prefs.filterJobs(allAvailableJobs);
     const filteredAvailableJobs = filteredAvailableResult.passed;
 
-    console.log(`📊 Phase 3 Input: ${allAvailableJobs.length} total available jobs → ${filteredAvailableJobs.length} after filtering\n`);
+    // Log jobs AFTER filtering
+    console.log(`\n✅ After Filter: ${filteredAvailableJobs.length} job(s) passed:`);
+    filteredAvailableJobs.forEach((job: any, idx: number) => {
+      const title = job.positionTitle || job.position || job.positionType?.title || job.title || 'Untitled';
+      const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
+      const date = job.startDate || job.date || 'N/A';
+      console.log(`   ${idx + 1}. ${title} @ ${building} (${date})`);
+    });
+
+    console.log(`\n📊 Phase 3 Input: ${allAvailableJobs.length} total available jobs → ${filteredAvailableJobs.length} after filtering\n`);
 
     // Now compare filtered available jobs with scheduled jobs
     const comparisonResult = comparisonModule.compare(
