@@ -65,11 +65,10 @@ COPY config/ ./config/
 ARG NODE_ENV=prod
 ENV NODE_ENV=${NODE_ENV}
 
-# Run as non-root user for security (UID 1000 matches host 'ubuntu' user for bind mounts)
-RUN groupadd -r appuser -g 1000 && useradd -r -g appuser -u 1000 -d /app appuser \
-    && mkdir -p logs \
-    && chown -R appuser:appuser /app
-USER appuser
+# Run as non-root user for security (node user is UID 1000, matches host 'ubuntu' user for bind mounts)
+RUN mkdir -p logs \
+    && chown -R node:node /app
+USER node
 
 # Health check - verify the node process is running
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
