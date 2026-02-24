@@ -69,7 +69,7 @@ class TelegramNotifier {
    * Check if current time is within silent hours
    */
   private isSilentHours(): boolean {
-    const hour = new Date().getHours();
+    const hour = parseInt(new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Chicago' }));
     if (this.silentHoursStart > this.silentHoursEnd) {
       // e.g., 23 to 6 (wraps midnight)
       return hour >= this.silentHoursStart || hour < this.silentHoursEnd;
@@ -205,7 +205,7 @@ class TelegramNotifier {
   public async notifyAuthRefresh(): Promise<void> {
     const text = `🔑 <b>Auth Token Refreshed</b>\n\n`
       + `A new JWT was obtained via re-authentication.\n`
-      + `⏰ ${new Date().toLocaleString()}`;
+      + `⏰ ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })}`;
 
     await this.sendMessage({ text });
   }
@@ -236,7 +236,7 @@ class TelegramNotifier {
     if (!this.notifyDailySummary) return;
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Chicago' });
 
     const text = `📊 <b>Daily Summary - ${dateStr}</b>\n\n`
       + `📅 Scheduled Jobs: <b>${summary.scheduledJobs}</b>\n`
@@ -256,7 +256,7 @@ class TelegramNotifier {
   public async notifyStartup(): Promise<void> {
     const text = `🟢 <b>WillSub Automation Started</b>\n\n`
       + `📍 Job monitoring is now active.\n`
-      + `🕐 ${new Date().toLocaleString()}`;
+      + `🕐 ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })}`;
 
     await this.sendMessage({ text, disable_notification: true });
   }
@@ -266,7 +266,7 @@ class TelegramNotifier {
    */
   public async notifyShutdown(): Promise<void> {
     const text = `🔴 <b>WillSub Automation Stopped</b>\n\n`
-      + `🕐 ${new Date().toLocaleString()}`;
+      + `🕐 ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })}`;
 
     await this.sendMessage({ text, disable_notification: true });
   }

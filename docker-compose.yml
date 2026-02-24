@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=${NODE_ENV:-prod}
+      - TZ=America/Chicago
       - WILLSUB_USERNAME=${WILLSUB_USERNAME}
       - WILLSUB_PASSWORD=${WILLSUB_PASSWORD}
       - WILLSUB_SCHEDULING_ENABLED=${WILLSUB_SCHEDULING_ENABLED:-true}
@@ -21,11 +22,10 @@ services:
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
     volumes:
-      - willsub-logs:/app/logs
+      - ./logs:/app/logs
       - willsub-cache:/app/cache
     mem_limit: 1g
     cpus: 1.0
 
 volumes:
-  willsub-logs:
   willsub-cache:

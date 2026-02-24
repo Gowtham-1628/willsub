@@ -64,7 +64,7 @@ class FileLogger {
       // Write initialization header
       this.writeToFile(`\n${'='.repeat(80)}`);
       this.writeToFile(`🚀 Job Automation System - Execution started`);
-      this.writeToFile(`📅 Timestamp: ${new Date().toLocaleString()}`);
+      this.writeToFile(`📅 Timestamp: ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })}`);
       this.writeToFile(`${'='.repeat(80)}\n`);
 
       // Override console methods
@@ -112,7 +112,7 @@ class FileLogger {
     }).join(' ');
 
     if (this.config.includeTimestamp) {
-      const time = new Date().toLocaleTimeString();
+      const time = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Chicago' });
       return `[${time}]${level ? ` [${level}]` : ''} ${message}`;
     }
 

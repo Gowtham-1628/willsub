@@ -19,7 +19,7 @@ RUN npm run build
 # ============================================
 FROM node:20-slim
 
-# Install Chromium dependencies for Puppeteer
+# Install Chromium dependencies for Puppeteer + timezone data
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-liberation \
@@ -39,8 +39,12 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
+    tzdata \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+# Set default timezone to CST
+ENV TZ=America/Chicago
 
 # Tell Puppeteer to use the installed Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -62,8 +66,8 @@ COPY config/ ./config/
 ARG NODE_ENV=prod
 ENV NODE_ENV=${NODE_ENV}
 
-# Run as non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser \
+# Run as non-root user for security (UID 1000 matches host 'ubuntu' user for bind mounts)
+RUN groupadd -r appuser -g 1000 && useradd -r -g appuser -u 1000 -d /app appuser \
     && mkdir -p logs \
     && chown -R appuser:appuser /app
 USER appuser

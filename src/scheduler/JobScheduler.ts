@@ -63,8 +63,8 @@ class JobScheduler {
     const now = new Date();
     this.executionCount++;
 
-    const timeStr = now.toLocaleTimeString();
-    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'America/Chicago' });
+    const dateStr = now.toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
 
     console.log(`\n${'='.repeat(80)}`);
     console.log(`⏰ SCHEDULED EXECUTION #${this.executionCount}`);
@@ -108,7 +108,7 @@ class JobScheduler {
     console.log(`   Successful: ${this.executionCount - this.failureCount} ✅`);
     console.log(`   Failed: ${this.failureCount} ❌`);
     if (this.lastExecutionTime) {
-      console.log(`   Last Execution: ${this.lastExecutionTime.toLocaleTimeString()}`);
+      console.log(`   Last Execution: ${this.lastExecutionTime.toLocaleTimeString('en-US', { timeZone: 'America/Chicago' })}`);
     }
     console.log('');
 
