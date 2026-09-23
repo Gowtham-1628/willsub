@@ -45,3 +45,61 @@ describe('TelegramNotifier auth refresh notifications', () => {
     );
   });
 });
+
+describe('TelegramNotifier building alerts', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedAxios.post.mockResolvedValue({ status: 200, data: {} });
+  });
+
+  test('alerts only for configured buildings', async () => {
+    const notifier = new TelegramNotifier({
+      enabled: true,
+      botToken: 'test-token',
+      chatId: 'test-chat',
+      notifyOnBuildingJobs: true,
+      buildingJobAlertBuildingIds: [1709]
+    });
+
+    await notifier.notifyBuildingJobs([
+      {
+        id: 'watched-job',
+        positionTitle: 'Teacher',
+        schedules: [{ building: { id: 1709, title: 'Spears Elementary' } }]
+      },
+      {
+        id: 'unwatched-job',
+        positionTitle: 'Teacher',
+        schedules: [{ building: { id: 1674, title: 'Hunt Middle School' } }]
+      }
+    ]);
+
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      'https://api.telegram.org/bottest-token/sendMessage',
+      expect.objectContaining({
+        text: expect.stringContaining('Spears Elementary')
+      }),
+      { timeout: 10000 }
+    );
+    expect(mockedAxios.post.mock.calls[0][1]).not.toEqual(
+      expect.objectContaining({ text: expect.stringContaining('Hunt Middle School') })
+    );
+  });
+
+  test('does not alert when building alerts are disabled', async () => {
+    const notifier = new TelegramNotifier({
+      enabled: true,
+      botToken: 'test-token',
+      chatId: 'test-chat',
+      notifyOnBuildingJobs: false,
+      buildingJobAlertBuildingIds: [1709]
+    });
+
+    await notifier.notifyBuildingJobs([
+      { id: 'watched-job', schedules: [{ building: { id: 1709 } }] }
+    ]);
+
+    expect(mockedAxios.post).not.toHaveBeenCalled();
+  });
+});

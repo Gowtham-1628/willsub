@@ -77,6 +77,8 @@
     "notifyOnNewJobs": true,
     "notifyOnErrors": true,
     "notifyDailySummary": true,
-    "notifyOnAuthRefresh": false
+    "notifyOnAuthRefresh": false,
+    "notifyOnBuildingJobs": true,
+    "buildingJobAlertBuildingIds": [1709]
   }
 }

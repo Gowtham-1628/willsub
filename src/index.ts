@@ -9,6 +9,8 @@ import FileLogger from './logger/FileLogger';
 import TelegramNotifier from './notifications/TelegramNotifier';
 import axios from 'axios';
 
+const alertedBuildingJobIds = new Set<string>();
+
 /**
  * Display jobs in a formatted table
  */
@@ -495,6 +497,17 @@ async function main() {
 
     const filteredAvailableResult = phase3Prefs.filterJobs(allAvailableJobs);
     const filteredAvailableJobs = filteredAvailableResult.passed;
+
+    const buildingAlertJobs = allAvailableJobs.filter(job => {
+      const jobId = String(job.id || job.jobId || '');
+      const buildingId = job.schedules?.[0]?.building?.id;
+      return jobId && buildingId !== undefined && !alertedBuildingJobIds.has(jobId);
+    });
+
+    if (telegram?.isEnabled() && buildingAlertJobs.length > 0) {
+      await telegram.notifyBuildingJobs(buildingAlertJobs);
+      buildingAlertJobs.forEach(job => alertedBuildingJobIds.add(String(job.id || job.jobId)));
+    }
 
     // Log jobs AFTER filtering
     console.log(`\n✅ After Filter: ${filteredAvailableJobs.length} job(s) passed:`);

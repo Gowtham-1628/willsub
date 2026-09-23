@@ -79,6 +79,8 @@ interface TelegramConfig {
   notifyOnErrors?: boolean;
   notifyDailySummary?: boolean;
   notifyOnAuthRefresh?: boolean;
+  notifyOnBuildingJobs?: boolean;
+  buildingJobAlertBuildingIds?: (string | number)[];
 }
 
 interface Config {

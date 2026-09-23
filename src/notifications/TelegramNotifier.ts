@@ -31,6 +31,8 @@ export interface TelegramConfig {
   notifyOnErrors?: boolean;
   notifyDailySummary?: boolean;
   notifyOnAuthRefresh?: boolean;
+  notifyOnBuildingJobs?: boolean;
+  buildingJobAlertBuildingIds?: (string | number)[];
 }
 
 interface TelegramMessage {
@@ -50,6 +52,8 @@ class TelegramNotifier {
   private notifyOnErrors: boolean;
   private notifyDailySummary: boolean;
   private notifyOnAuthRefresh: boolean;
+  private notifyOnBuildingJobs: boolean;
+  private buildingJobAlertBuildingIds: Set<string>;
   private lastMessageTime: number = 0;
   private minIntervalMs: number = 1000; // 1 second between messages (Telegram rate limit)
   private baseUrl: string;
@@ -65,6 +69,10 @@ class TelegramNotifier {
     this.notifyOnErrors = config.notifyOnErrors ?? true;
     this.notifyDailySummary = config.notifyDailySummary ?? true;
     this.notifyOnAuthRefresh = config.notifyOnAuthRefresh ?? true;
+    this.notifyOnBuildingJobs = config.notifyOnBuildingJobs ?? false;
+    this.buildingJobAlertBuildingIds = new Set(
+      (config.buildingJobAlertBuildingIds ?? []).map(String)
+    );
     this.baseUrl = `https://api.telegram.org/bot${this.botToken}`;
   }
 
@@ -183,6 +191,39 @@ class TelegramNotifier {
 
     if (jobs.length > 8) {
       text += `<i>...and ${jobs.length - 8} more</i>\n`;
+    }
+
+    await this.sendMessage({ text });
+  }
+
+  /**
+   * Notify when jobs are available at watched buildings.
+   */
+  public async notifyBuildingJobs(jobs: any[]): Promise<void> {
+    if (!this.notifyOnBuildingJobs || this.buildingJobAlertBuildingIds.size === 0 || jobs.length === 0) return;
+
+    const watchedJobs = jobs.filter(job => {
+      const buildingId = job.schedules?.[0]?.building?.id;
+      return buildingId !== undefined && this.buildingJobAlertBuildingIds.has(String(buildingId));
+    });
+
+    if (watchedJobs.length === 0) return;
+
+    let text = `🏫 <b>${watchedJobs.length} New Job(s) at Watched Building(s)!</b>\n\n`;
+    watchedJobs.slice(0, 8).forEach((job, i) => {
+      const title = job.positionTitle || job.position || job.positionType?.title || 'Untitled';
+      const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
+      const date = job.startDate || job.date || 'N/A';
+      const scheduleType = job.schedules?.[0]?.scheduleType || '';
+
+      text += `<b>${i + 1}. ${this.escapeHtml(title)}</b>\n`;
+      text += `   📍 ${this.escapeHtml(building)}`;
+      if (scheduleType) text += ` | 🕐 ${scheduleType}`;
+      text += `\n   📅 ${date}\n\n`;
+    });
+
+    if (watchedJobs.length > 8) {
+      text += `<i>...and ${watchedJobs.length - 8} more</i>\n`;
     }
 
     await this.sendMessage({ text });

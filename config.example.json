@@ -48,7 +48,9 @@
     "notifyOnNewJobs": false,
     "notifyOnErrors": true,
     "notifyDailySummary": false,
-    "notifyOnAuthRefresh": false
+    "notifyOnAuthRefresh": false,
+    "notifyOnBuildingJobs": false,
+    "buildingJobAlertBuildingIds": []
   },
   "autoApply": {
     "enabled": true,
