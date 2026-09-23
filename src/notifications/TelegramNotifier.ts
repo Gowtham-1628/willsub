@@ -30,6 +30,7 @@ export interface TelegramConfig {
   notifyOnNewJobs?: boolean;
   notifyOnErrors?: boolean;
   notifyDailySummary?: boolean;
+  notifyOnAuthRefresh?: boolean;
 }
 
 interface TelegramMessage {
@@ -48,6 +49,7 @@ class TelegramNotifier {
   private notifyOnNewJobs: boolean;
   private notifyOnErrors: boolean;
   private notifyDailySummary: boolean;
+  private notifyOnAuthRefresh: boolean;
   private lastMessageTime: number = 0;
   private minIntervalMs: number = 1000; // 1 second between messages (Telegram rate limit)
   private baseUrl: string;
@@ -62,6 +64,7 @@ class TelegramNotifier {
     this.notifyOnNewJobs = config.notifyOnNewJobs ?? true;
     this.notifyOnErrors = config.notifyOnErrors ?? true;
     this.notifyDailySummary = config.notifyDailySummary ?? true;
+    this.notifyOnAuthRefresh = config.notifyOnAuthRefresh ?? true;
     this.baseUrl = `https://api.telegram.org/bot${this.botToken}`;
   }
 
@@ -203,6 +206,8 @@ class TelegramNotifier {
    * Notify when auth token is refreshed (new JWT obtained)
    */
   public async notifyAuthRefresh(): Promise<void> {
+    if (!this.notifyOnAuthRefresh) return;
+
     const text = `🔑 <b>Auth Token Refreshed</b>\n\n`
       + `A new JWT was obtained via re-authentication.\n`
       + `⏰ ${new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' })}`;

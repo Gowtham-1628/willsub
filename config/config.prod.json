@@ -76,6 +76,7 @@
     "notifyOnApply": true,
     "notifyOnNewJobs": true,
     "notifyOnErrors": true,
-    "notifyDailySummary": true
+    "notifyDailySummary": true,
+    "notifyOnAuthRefresh": false
   }
 }

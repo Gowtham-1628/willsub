@@ -78,6 +78,7 @@ interface TelegramConfig {
   notifyOnNewJobs?: boolean;
   notifyOnErrors?: boolean;
   notifyDailySummary?: boolean;
+  notifyOnAuthRefresh?: boolean;
 }
 
 interface Config {

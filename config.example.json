@@ -40,6 +40,16 @@
       "includeSupplemental": false
     }
   },
+  "telegram": {
+    "enabled": false,
+    "botToken": "",
+    "chatId": "",
+    "notifyOnApply": true,
+    "notifyOnNewJobs": false,
+    "notifyOnErrors": true,
+    "notifyDailySummary": false,
+    "notifyOnAuthRefresh": false
+  },
   "autoApply": {
     "enabled": true,
     "autoApplyOnMatches": true,
