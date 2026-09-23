@@ -89,6 +89,10 @@ if [ "$DEPLOY_MODE" = "docker" ]; then
     echo "🔨 Building and starting container..."
     cd "$APP_DIR"
 
+    # The bind-mounted logs directory must be writable by the container's appuser (UID 1000).
+    sudo mkdir -p "$APP_DIR/logs"
+    sudo chown -R 1000:1000 "$APP_DIR/logs"
+
     # Use docker compose (v2) or docker-compose (v1)
     if docker compose version &> /dev/null 2>&1; then
         docker compose up -d --build

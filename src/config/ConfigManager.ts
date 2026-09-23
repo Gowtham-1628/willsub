@@ -120,11 +120,12 @@ class ConfigManager {
     if (configPath) return configPath;
 
     const env = process.env.NODE_ENV || 'development';
-    const envConfigPath = `./config/config.${env}.json`;
+    const configEnvironment = env === 'production' ? 'prod' : env;
+    const envConfigPath = `./config/config.${configEnvironment}.json`;
     const resolvedEnvPath = path.resolve(envConfigPath);
 
     if (fs.existsSync(resolvedEnvPath)) {
-      console.log(`📋 Using ${env} config: ${envConfigPath}`);
+      console.log(`📋 Using ${configEnvironment} config: ${envConfigPath}`);
       return envConfigPath;
     }
 
