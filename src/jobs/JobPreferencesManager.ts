@@ -121,7 +121,13 @@ class JobPreferencesManager {
       }
     }
 
-    if (this.preferences.includeSupplemental === false && job.supplemental === true) {
+    const isSupplemental = job.supplemental === true || job.supplemental === 'true';
+    if (job.supplemental !== undefined) {
+      const decision = this.preferences.includeSupplemental === false && isSupplemental ? 'excluded' : 'included';
+      console.log(`   Supplemental filter: job=${job.id || 'unknown'}, raw=${String(job.supplemental)}, normalized=${isSupplemental}, setting=${this.preferences.includeSupplemental ?? 'default'}, decision=${decision}`);
+    }
+
+    if (this.preferences.includeSupplemental === false && isSupplemental) {
       return {
         passed: false,
         reason: 'Supplemental jobs are excluded from your preferences'

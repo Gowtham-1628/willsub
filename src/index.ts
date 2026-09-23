@@ -143,6 +143,9 @@ function loadFilterPreferences(configManager: ConfigManager): { preferences: any
         if (jobFilteringConfig.filterByJobType.includeSupplemental !== undefined) {
           preferences.includeSupplemental = jobFilteringConfig.filterByJobType.includeSupplemental;
         }
+
+        const supplementalSetting = jobFilteringConfig.filterByJobType.includeSupplemental;
+        console.log(`   Supplemental job filter: ${supplementalSetting === false ? 'excluding supplemental jobs' : supplementalSetting === true ? 'including supplemental jobs' : 'not configured (default: include)'}`);
       }
 
       manager.setPreferences(preferences);
