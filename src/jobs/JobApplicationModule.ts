@@ -50,6 +50,17 @@ class JobApplicationModule {
     const jobId = job.id;
     const jobTitle = job.position || job.positionType?.title || 'Unknown';
     const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
+    const isSupplemental = job.supplemental === true || job.supplemental === 'true';
+
+    if (isSupplemental) {
+      console.log(`   ⏭️  Skipping supplemental job ${jobId}; supplemental applications are disabled.`);
+      return {
+        jobId,
+        jobTitle,
+        status: 'skipped',
+        message: `Skipped supplemental job ${jobTitle} at ${building}`
+      };
+    }
 
     if (dryRunMode) {
       return {
