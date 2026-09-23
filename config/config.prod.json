@@ -79,6 +79,6 @@
     "notifyDailySummary": true,
     "notifyOnAuthRefresh": false,
     "notifyOnBuildingJobs": true,
-    "buildingJobAlertBuildingIds": [1709]
+    "buildingJobAlertBuildingIds": [1674, 1709, 1705]
   }
 }
