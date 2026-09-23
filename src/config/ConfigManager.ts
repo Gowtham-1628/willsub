@@ -32,6 +32,7 @@ interface JobFilteringConfig {
     enabled: boolean;
     includeLongTerm?: boolean;
     includeShortTerm?: boolean;
+    includeSupplemental?: boolean;
   };
 }
 

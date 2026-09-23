@@ -25,6 +25,7 @@ export interface JobPreferences {
   // Job type filters
   includeLongTerm?: boolean; // Include long-term jobs (default: true)
   includeShortTerm?: boolean; // Include short-term jobs (default: true)
+  includeSupplemental?: boolean; // Include supplemental jobs (default: true)
   
   // Other preferences
   onlyMultipleDays?: boolean; // Only show jobs that span multiple days
@@ -118,6 +119,13 @@ class JobPreferencesManager {
           reason: `Short-term jobs are excluded from your preferences`
         };
       }
+    }
+
+    if (this.preferences.includeSupplemental === false && job.supplemental === true) {
+      return {
+        passed: false,
+        reason: 'Supplemental jobs are excluded from your preferences'
+      };
     }
 
     // Check include filters (must match at least one if specified)
@@ -277,6 +285,10 @@ class JobPreferencesManager {
       } else if (includeShortTerm) {
         parts.push(`✓ Job types: Short-term only`);
       }
+    }
+
+    if (this.preferences.includeSupplemental !== undefined) {
+      parts.push(`✓ Supplemental jobs: ${this.preferences.includeSupplemental ? 'included' : 'excluded'}`);
     }
     
     if (this.preferences.onlyMultipleDays) {

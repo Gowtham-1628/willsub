@@ -140,6 +140,9 @@ function loadFilterPreferences(configManager: ConfigManager): { preferences: any
         if (jobFilteringConfig.filterByJobType.includeShortTerm !== undefined) {
           preferences.includeShortTerm = jobFilteringConfig.filterByJobType.includeShortTerm;
         }
+        if (jobFilteringConfig.filterByJobType.includeSupplemental !== undefined) {
+          preferences.includeSupplemental = jobFilteringConfig.filterByJobType.includeSupplemental;
+        }
       }
 
       manager.setPreferences(preferences);

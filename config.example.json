@@ -36,7 +36,8 @@
     "filterByJobType": {
       "enabled": true,
       "includeLongTerm": false,
-      "includeShortTerm": true
+      "includeShortTerm": true,
+      "includeSupplemental": false
     }
   },
   "autoApply": {
