@@ -533,6 +533,15 @@ async function main() {
     // Display new opportunities
     if (comparisonResult.newOpportunities.length > 0) {
       console.log('\n✅ NEW OPPORTUNITIES (Match your preferences & no schedule conflicts):');
+      comparisonResult.newOpportunities.forEach((job: any) => {
+        console.log(JSON.stringify({
+          event: 'matched_job_raw_payload',
+          jobId: job.id || job.jobId || null,
+          supplemental: job.supplemental,
+          buildingId: job.schedules?.[0]?.building?.id || null,
+          rawPayload: job
+        }));
+      });
       console.log('');
 
       const displayOpportunities = comparisonResult.newOpportunities.slice(
