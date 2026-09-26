@@ -516,6 +516,7 @@ async function main() {
       const building = job.schedules?.[0]?.building?.title || job.schedules?.[0]?.building?.name || 'N/A';
       const date = job.startDate || job.date || 'N/A';
       console.log(`   ${idx + 1}. ${title} @ ${building} (${date})`);
+      console.log(`   Matched job payload: ${JSON.stringify(job)}`);
     });
 
     console.log(`\n📊 Phase 3 Input: ${allAvailableJobs.length} total available jobs → ${filteredAvailableJobs.length} after filtering\n`);

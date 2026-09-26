@@ -74,6 +74,7 @@ class JobApplicationModule {
     try {
       console.log(`   📝 Accepting ${jobTitle} at ${building}...`);
       console.log(`   🔍 Job ID: ${jobId}, User ID: ${userId}`);
+      console.log(`   📦 Job payload before booking: ${JSON.stringify(job)}`);
 
       const response = await this.axiosInstance.post(
         `${this.baseUrl}/api/substitute-jobs/${jobId}/accept`,
