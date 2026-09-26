@@ -25,7 +25,7 @@
     },
     "filterByScheduleType": {
       "enabled": true,
-      "preferred": ["FULL_DAY"]
+      "preferred": ["FULL_DAY", "HALF_DAY_AM", "HALF_DAY_PM"]
     },
     "filterByDuration": {
       "enabled": false,
